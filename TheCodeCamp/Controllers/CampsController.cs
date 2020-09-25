@@ -11,6 +11,7 @@ using TheCodeCamp.Models;
 
 namespace TheCodeCamp.Controllers
 {
+    [RoutePrefix("api/camps")]
     public class CampsController : ApiController
     {
         private readonly ICampRepository _repositary;
@@ -22,11 +23,11 @@ namespace TheCodeCamp.Controllers
         }
 
         // GET api/<controller>
-        public async Task<IHttpActionResult> Get()
+        public async Task<IHttpActionResult> Get(bool includeTalks = false)
         {
             try
             {
-                var result = await _repositary.GetAllCampsAsync();
+                var result = await _repositary.GetAllCampsAsync(includeTalks);
                 var mappedResult = _mapper.Map<IEnumerable<CampModel>>(result);
                 return Ok(mappedResult);
             }
@@ -36,12 +37,36 @@ namespace TheCodeCamp.Controllers
             }
         }
 
-        // GET api/<controller>/5
-        public string Get(int id)
+        [Route("monikar")]
+       public async Task<IHttpActionResult> Get(string monikar, bool includeTalks = false)
         {
-            return "value";
+            try
+            {
+                var result = await _repositary.GetCampAsync(monikar);
+                var mappedResult = _mapper.Map<CampModel>(result);
+                return Ok(mappedResult);
+            }
+            catch(Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+
         }
 
+        [Route("searchByDate/{eventDate:datetime}")]
+        [HttpGet]
+        public async Task<IHttpActionResult> SearchByEventDate(DateTime eventDate, bool includeTalks = false)
+        {
+            try
+            {
+                var result = await _repositary.GetAllCampsByEventDate(eventDate, includeTalks);
+                return Ok(_mapper.Map<CampModel[]>(result));
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+        }
         // POST api/<controller>
         public void Post([FromBody] string value)
         {
