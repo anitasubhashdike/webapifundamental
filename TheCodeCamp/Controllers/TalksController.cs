@@ -87,14 +87,61 @@ namespace TheCodeCamp.Controllers
             return BadRequest(ModelState);
         }
 
-        // PUT api/<controller>/5
-        public void Put(int id, [FromBody] string value)
+        [Route("{talkId:int}")]
+        public async Task<IHttpActionResult> Put(string monikar, int talkId, TalkModel model)
         {
+            try
+            {
+                if(ModelState.IsValid)  {
+                    var talk = await _repositary.GetTalkByMonikerAsync(monikar, talkId, true);
+                    if (talk == null) return NotFound();
+
+                   _mapper.Map(model, talk);
+
+                    if (talk.Speaker.SpeakerId != model.Speaker.SpeakerId)
+                    {
+                        var speaker = await _repositary.GetSpeakerAsync(model.Speaker.SpeakerId);
+                        
+                        if (speaker != null) talk.Speaker = speaker;
+                    }
+
+                    if (await _repositary.SaveChangesAsync())
+                    {
+                        return Ok(_mapper.Map<TalkModel>(talk));
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+               return  InternalServerError(ex);
+            }
+            return BadRequest();
         }
 
-        // DELETE api/<controller>/5
-        public void Delete(int id)
+        [Route("{talkId:int}")]
+        public async Task<IHttpActionResult> Delete(string monikar, int talkId)
         {
+            try
+            {
+                var talk = await _repositary.GetTalkByMonikerAsync(monikar, talkId);
+                if (talk == null) return NotFound();
+
+                _repositary.DeleteTalk(talk);
+
+                if(await _repositary.SaveChangesAsync())
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return InternalServerError();
+                }
+            }
+            catch(Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+
         }
     }
 }
