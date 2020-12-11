@@ -11,6 +11,7 @@ using TheCodeCamp.Models;
 
 namespace TheCodeCamp.Controllers
 {
+    //talk controller
     [RoutePrefix("api/camps/{monikar}/talks")]
     public class TalksController : ApiController
     {
